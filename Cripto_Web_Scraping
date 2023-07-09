@@ -1,0 +1,118 @@
+import pandas as pd
+from bs4 import BeautifulSoup
+import requests
+import smtplib
+import time
+import datetime
+import openpyxl
+
+
+#POVEZI WEB ADRESU
+url = 'https://coinmarketcap.com'
+response = requests.get(url)
+soup = BeautifulSoup(response.content, 'html.parser')
+
+#LOGO
+logo_element = soup.find('img', class_='coin-logo')
+logo_url = logo_element['src']
+
+#NASLOV
+title_element =soup.find('p', class_='sc-4984dd93-0 kKpPOn')
+title= title_element.text.strip()
+
+# OZNAKA
+short_element = soup.find('p',class_='sc-4984dd93-0 iqdbQL coin-item-symbol')
+short= short_element.text.strip()
+
+
+#VRIJEDNOST
+element = soup.find('a', href="/currencies/bitcoin/markets/", class_="cmc-link")
+broj_element = element.find('span')
+price = broj_element.text.strip('$,').replace(',', '')
+
+
+#DATUM
+today= datetime.date.today()
+
+#-----------------------------------------------------------------------------------------------------------------------
+
+# Kreiranje nove Excel datoteke
+
+wb = openpyxl.Workbook()
+
+# Odabir radnog lista (sheet) u datoteci
+sheet = wb.active
+
+# Unos zaglavlja
+headers = ['Logo', 'Name', 'Mark', 'Price', 'Date']
+for col_num, header in enumerate(headers, 1):
+    sheet.cell(row=1, column=col_num).value = header
+
+# Unos podataka iz varijabli
+data = [
+    [logo_url,title,short,price,today]
+    ]
+for row_num, row_data in enumerate(data, 2):
+    for col_num, value in enumerate(row_data, 1):
+        sheet.cell(row=row_num, column=col_num).value = value
+
+# Čuvanje Excel datoteke
+wb.save('example.xlsx')
+
+#----------------------------------------------------------------------------------------------------------------------------------
+
+def scrape_data():
+    #POVEZI WEB ADRESU
+    url = 'https://coinmarketcap.com'
+    response = requests.get(url)
+    soup = BeautifulSoup(response.content, 'html.parser')
+
+    #LOGO
+    logo_element = soup.find('img', class_='coin-logo')
+    logo_url = logo_element['src']
+
+    #NASLOV
+    title_element =soup.find('p', class_='sc-4984dd93-0 kKpPOn')
+    title= title_element.text.strip()
+
+    # OZNAKA
+    short_element = soup.find('p',class_='sc-4984dd93-0 iqdbQL coin-item-symbol')
+    short= short_element.text.strip()
+
+    #VRIJEDNOST
+    element = soup.find('a', href="/currencies/bitcoin/markets/", class_="cmc-link")
+    broj_element = element.find('span')
+    price = broj_element.text.strip('$,').replace(',', '')
+
+    #DATUM
+    today= datetime.date.today()
+
+    # Kreiranje nove Excel datoteke
+    wb = openpyxl.Workbook()
+
+    # Odabir radnog lista (sheet) u datoteci
+    sheet = wb.active
+
+    # Unos zaglavlja
+    headers = ['Logo', 'Name', 'Mark', 'Price', 'Date']
+    for col_num, header in enumerate(headers, 1):
+        sheet.cell(row=1, column=col_num).value = header
+
+    # Unos podataka iz varijabli
+    data = [
+        [logo_url, title, short, price, today]
+    ]
+    for row_num, row_data in enumerate(data, 2):
+        for col_num, value in enumerate(row_data, 1):
+            sheet.cell(row=row_num, column=col_num).value = value
+
+    # Čuvanje Excel datoteke
+    wb.save('example.xlsx')
+
+
+# Ažuriranje podataka svaki sat
+while True:
+    scrape_data()
+    time.sleep(3600)  # Pauza od 1 sata (3600 sekundi)
+
+
